@@ -19,6 +19,7 @@ def download(filename):
     logging.info(str(request.remote_addr)+u' - - User: ' + str(g.user.username) + u' "Downloading log-file"')  # add log event
     return send_from_directory(directory=downloads, filename=filename)
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()                                                              # init login form
