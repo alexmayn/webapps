@@ -10,8 +10,8 @@ SECRET_KEY = 'my-super-secret-key'   # secret key
 
 WTF_CSRF_ENABLED = True # CSRF for WTForms
 DEBUG = True            # Using debug
-DOWNLOAD_FOLDER = '../static/'# Folder for files to download
-LOG = 'static/sitelog.log'
+DOWNLOAD_FOLDER = '../download/'# Folder for files for download
+LOG = 'download/sitelog.log'    # Log file path
 """
 
    WhatFor: Configure of MongoDB connection
@@ -32,7 +32,7 @@ SETTINGS_COLLECTION = DATABASE.settings #it's not used
 MONGODB_DB    =  DB_NAME
 #MONGODB_HOST  = '127.0.0.1'
 #MONGODB_PORT  =  27017
-#MONGODB_USERNAME = 'user'
-#MONGODB_PASSWORD = 'password'
+MONGODB_USERNAME = 'user'
+MONGODB_PASSWORD = 'password'
 
  
