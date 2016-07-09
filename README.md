@@ -6,6 +6,9 @@ Blog on Python with Flask, MongoDB.
 It contain autorization, administration and logging functions.
 
 For starting project you must be using wsgi.py
+For docker start you should use this command:
+
+             $ docker pull maynagashev/webapp
 
    Structure of project:
 
