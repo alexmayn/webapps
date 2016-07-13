@@ -20,7 +20,7 @@ def not_found(error):
 @login_required
 def download(filename):
     downloads = os.path.join(current_app.root_path, app.config['DOWNLOAD_FOLDER'])
-    logging.info(str(request.remote_addr)+u' - - User: ' + str(g.user.username) + u' "Downloading log-file"')  # add log event
+    logging.info(str(request.remote_addr)+u' - - User: ' + str(g.user._id) + u' "Downloading log-file"')  # add log event
     return send_from_directory(directory=downloads, filename=filename)
 
 
@@ -40,9 +40,11 @@ def login():
     return render_template('login.html', title='login', form=form)          #rollback to login page
 
 
+
 @app.route('/logout')
 def logout():
-    logout_user()
+    # logout from site
+    logout_user()  
     return redirect(url_for('login'))
 
 
@@ -50,11 +52,13 @@ def logout():
 @app.route('/home', methods=['GET', 'POST'])
 @login_required
 def home():
+    # go to home page when loggined on main page
     return render_template('home.html')
 
 #Set global var: g.user
 @app.before_request
 def before_request():
+    # update global variable g.user
     g.user = current_user
 
 # Load user from DB

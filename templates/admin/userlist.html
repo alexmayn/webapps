@@ -23,7 +23,11 @@
         <th><a href="{{ url_for('admin.settings', nikname=user._id) }}">{{ user._id }}</a></th>
         <td>{{ user.isadmin }}</td>
         <td><a href="{{ url_for("admin.settings", nikname=user._id) }}" class="btn primary">Edit</a></td>
-        <td><a href="{{ url_for("admin.settings", nikname=user._id) }}" class="btn primary">Delete</a></td>
+        <th>
+            <form action="{{ url_for("admin.userdelete", nikname=user._id) }}"  method=post class=UserDelete>
+            <input type=hidden value="{{ user._id }}"name=user_to_delete"></input>
+            <input type=submit title="Delete"></input></form>
+        </th>
       </tr>
     {% endfor %}
     </tbody>

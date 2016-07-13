@@ -3,21 +3,27 @@
 {% block content %}
   <div class="navbar-collapse">
       <ul class="nav nav-pills navbar-nav navbar-right ">
-         <li><a href="{{ url_for("admin.create") }}" class="btn">Добавить статью</a> </li>
+         <li><a href="{{ url_for("admin.create") }}" class="btn">Add article</a> </li>
       </ul>
   </div>
   <table  class="table table-bordered table-striped">
     <thead>
-      <th>Заголовок</th>
-      <th>Дата создания</th>
-      <th>Действия</th>
+      <th>Title</th>
+      <th>Created at</th>
+      <th>Edit</th>
+      <th>Delete</th>
     </thead>
     <tbody>
     {% for post in posts %}
       <tr>
         <th><a href="{{ url_for('admin.edit', slug=post.slug) }}">{{ post.title }}</a></th>
         <td>{{ post.created_at.strftime('%Y-%m-%d') }}</td>
-        <td><a href="{{ url_for("admin.edit", slug=post.slug) }}" class="btn primary">Редактировать</a></td>
+        <td><a href="{{ url_for("admin.edit", slug=post.slug) }}" class="btn primary">Edit</a></td>
+        <th>
+            <form action="{{ url_for("admin.postdelete", slug=post.slug) }}"  method=post class=PostDelete>
+            <input type=hidden value="{{ post.slug }}"name=art_to_delete"></input>
+            <input type=submit title="Delete"></input></form>
+        </th>
       </tr>
     {% endfor %}
     </tbody>

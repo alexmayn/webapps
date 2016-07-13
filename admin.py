@@ -12,7 +12,20 @@ from ex import app
 admin = Blueprint('admin', __name__, template_folder='templates')
 user = Blueprint('user', __name__, template_folder='templates') #reg plueprint object
 
+class PostDelete(MethodView):
+
+    """Class for deleting posts """
+
+    cls = Post
+
+    def post(self, slug):
+        post_del = Post.objects.get_or_404(slug=slug)
+        post_del.delete()
+        return redirect(url_for('admin.index'))
+
 class List(MethodView):
+
+    """Class for view List of articles"""
 
     cls = Post
 
@@ -25,6 +38,8 @@ class List(MethodView):
 
 class ListUsers(MethodView):
 
+    """Class for view list users"""
+
     cls = User
 
     @login_required
@@ -36,12 +51,31 @@ class ListUsers(MethodView):
 
 class Admin(MethodView):
 
+    """ Class for logout """
+
     @login_required
     def get(self):
         logout_user()
         return redirect(url_for('logout'))
 
+class UserDelete(MethodView):
+
+    """Class for delete user from DB """
+
+    def post(self, nikname):
+
+        app.config['USERS_COLLECTION'].delete_one({"_id": nikname})  # delete document by id
+        return redirect(url_for('admin.users'))
+
+    def get(self, nikname):
+
+        app.config['USERS_COLLECTION'].delete_one({"_id": nikname})  # delete document by id
+        return redirect(url_for('admin.users'))
+
+
 class UserDetail(MethodView):
+
+    """ Class for view user detail """
 
     @login_required
     def get_context(self, nikname=None):
@@ -85,11 +119,6 @@ class UserDetail(MethodView):
         context = self.get_context(nikname)
         return render_template('admin/settings.html', **context)
 
-    @login_required
- #   def delete(self, nikname):
- #       app.config['USERS_COLLECTION'].delete_one({"_id": nikname})  # delete old document by id
- #       return redirect(url_for('admin.users'))
-
 
     @login_required
     def post(self, nikname):
@@ -117,9 +146,9 @@ class UserDetail(MethodView):
         return render_template('admin/settings.html', **context)
 
 
-
-
 class Detail(MethodView):
+
+    """ Class for view detail of articles """
 
     @login_required
     def get_context(self, slug=None):
@@ -167,9 +196,10 @@ admin.add_url_rule('/admin/', view_func=List.as_view('index'))
 admin.add_url_rule('/admin/logout/', view_func=Admin.as_view('logout'))
 admin.add_url_rule('/admin/create/', defaults={'slug': None}, view_func=Detail.as_view('create'))
 admin.add_url_rule('/admin/<slug>/', view_func=Detail.as_view('edit'))
+admin.add_url_rule('/admin/postdelete/<slug>',  view_func=PostDelete.as_view('postdelete'))
 # Register users urls
 admin.add_url_rule('/admin/users', view_func=ListUsers.as_view('users'))
 admin.add_url_rule('/admin/useradd/', defaults={'nikname': None}, view_func=UserDetail.as_view('useradd'))
-#admin.add_url_rule('/admin/userdelete/<nikname>',  view_func=UserDetail.as_view('userdelete'))
+admin.add_url_rule('/admin/userdelete/<nikname>',  view_func=UserDelete.as_view('userdelete'))
 admin.add_url_rule('/admin/settings/<nikname>', view_func=UserDetail.as_view('settings'))
 
