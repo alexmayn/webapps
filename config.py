@@ -27,7 +27,6 @@ DATABASE = MongoClient()[DB_NAME]
 # Set table names
 POSTS_COLLECTION = DATABASE.posts
 USERS_COLLECTION = DATABASE.user
-SETTINGS_COLLECTION = DATABASE.settings #it's not used
 
 # Options configure DB
 MONGODB_DB    =  DB_NAME

@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash
 from ex.models import Post, User
 #from ex.user import User
 from auth import check_admin
-from flask import Blueprint, request, redirect, render_template, url_for, g
+from flask import Blueprint, request, redirect, render_template, url_for, g, flash
 from flask.views import MethodView
 from flask.ext.login import logout_user, login_required
 from ex import app
@@ -63,13 +63,10 @@ class UserDelete(MethodView):
     """Class for delete user from DB """
 
     def post(self, nikname):
-
-        app.config['USERS_COLLECTION'].delete_one({"_id": nikname})  # delete document by id
-        return redirect(url_for('admin.users'))
-
-    def get(self, nikname):
-
-        app.config['USERS_COLLECTION'].delete_one({"_id": nikname})  # delete document by id
+        if not nikname == g.user._id:
+            app.config['USERS_COLLECTION'].delete_one({"_id": nikname})  # delete document by id
+        else:
+            flash("You cant delete youreself!", category='error')
         return redirect(url_for('admin.users'))
 
 
@@ -113,9 +110,9 @@ class UserDetail(MethodView):
 
     @login_required
     def get(self, nikname):
-        if request.method == 'DELETE':
-            app.config['USERS_COLLECTION'].delete_one({"_id": nikname})  # delete old document by id
-            return redirect(url_for('admin.users'))
+        #if request.method == 'DELETE':
+        #    app.config['USERS_COLLECTION'].delete_one({"_id": nikname})  # delete old document by id
+        #    return redirect(url_for('admin.users'))
         context = self.get_context(nikname)
         return render_template('admin/settings.html', **context)
 
@@ -136,12 +133,12 @@ class UserDetail(MethodView):
                 try:
                    app.config['USERS_COLLECTION'].delete_one({"_id": user._id}) # delete old document by id
                 except:
-                   None
+                    flash("There were some mistake, when we tried to delete the user "+user._id, category='error')
                 user._id = user.login # change _id - this make method 'save' to insert mode
             try:
              user.save()
             except:
-             None
+                flash("There were some mistake, when we tried to save the user " + user._id, category='error')
             return redirect(url_for('admin.users'))
         return render_template('admin/settings.html', **context)
 
