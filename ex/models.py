@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import datetime
+from werkzeug.security import check_password_hash
 from flask import url_for
-from ex import db
+from ex import db, app
 
 
 class Comment(db.EmbeddedDocument):
@@ -11,30 +12,64 @@ class Comment(db.EmbeddedDocument):
     author = db.StringField(verbose_name=u"Name", max_length=255, required=True)
 
 
-class Users(db.Document):
+class User(db.Document):
 # Users class for administration use
-    username = db.StringField(max_length=255, required=True)
+    _id = db.StringField(max_length=255, required=True)
+    login = db.StringField(max_length=255, required=True)
     password = db.StringField(max_length=255, required=True)
     isadmin  = db.StringField(max_length=255, required=True)
+    address  = db.StringField(max_length=255, required=False)
+    firstname = db.StringField(max_length=255, required=False)
+    secondname = db.StringField(max_length=255,required=False)
+    email = db.StringField(max_length=255,required=False)
 
-    def get(userid):
+    def get(self):#userid
         #u = db.getCollection('users').find({})
-        u =app.config['USERS_COLLECTION']#.find_one({"_id": self.username})
+        u =app.config['USERS_COLLECTION'].find_one({"_id": self._id})
         if not u:
             return None
-        return Users(u['_id'])
+        return u#Users(u['_id'])
+
+
+    def get_absolute_url(self):
+        return url_for('user', kwargs={"user": self._id})
 
     def __repr__(self):
-        return '<User %r>' % (self.username)
+        return '<User %r>' % (self._id)
 
 
     def __unicode__(self):
-     return self.username
+        return self._id
+
+    # Standard Defs
+    def is_authenticated(self):
+     return True
+
+
+    def is_active(self):
+        return True
+
+
+    def is_anonymous(self):
+     return False
+
+
+    def get_id(self):
+     return self._id
+
+
+    #def delete(self):
+    #   u = app.config['USERS_COLLECTION'].delete_one({"_id": self._id})  # delete old document by id
+    #   return u
+
+    @staticmethod
+    def validate_login(password_hash, password):
+        return check_password_hash(password_hash, password)  # embeded func for calculate hash
 
     meta = {
        'allow_inheritance': True,
-      'indexes': ['username'],
-      'ordering': ['username']
+      'indexes': ['_id'],
+      'ordering': ['_id']
     }
 
 class Post(db.Document):

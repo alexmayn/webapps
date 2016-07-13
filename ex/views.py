@@ -3,13 +3,17 @@ from flask.views import MethodView
 from flask.ext.login import login_user, logout_user, login_required, current_user
 from flask.ext.mongoengine.wtf import model_form
 from ex import app,login_manager
-from ex.models import Post, Comment
-from user import User
+from ex.models import Post, Comment, User
+#from user import User
 from forms import LoginForm
 import logging
 import os
 
 posts = Blueprint('posts', __name__, template_folder='templates') #reg plueprint object
+
+@app.errorhandler(404)
+def not_found(error):
+        return render_template('404.html'), 404
 
 # for downloading sitelog.site - statistics
 @app.route('/downloads/<filename>', methods=['GET', 'POST'])
@@ -30,7 +34,7 @@ def login():
             login_user(user_obj)
             g.user = user_obj
             flash("Logged in successfully!", category='success')
-            logging.info(str(request.remote_addr) +u' - - User: ' + str(g.user.username) + u' "was login"')
+            logging.info(str(request.remote_addr) +u' - - User: ' + str(g.user._id) + u' "was login"')
             return redirect(request.args.get("next") or url_for("home"))
         flash("Wrong username or password!", category='error')
     return render_template('login.html', title='login', form=form)          #rollback to login page
@@ -40,6 +44,7 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
 
 
 @app.route('/home', methods=['GET', 'POST'])

@@ -7,6 +7,7 @@
     </div>
     <div class="navbar-collapse">
       <ul class="nav nav-pills navbar-nav navbar-right ">
+      <li><a href="{{ url_for("admin.settings", nikname=current_user._id) }}">{{ current_user._id}}</a></li>
       <li><a href="{{ url_for('admin.index') }}">Articles</a></li>
       <li><a href="{{ url_for('admin.users') }}">Users</a></li>
       <li><a href="{{ url_for('admin.logout') }}">Logout</a></li>

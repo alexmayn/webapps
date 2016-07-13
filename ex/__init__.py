@@ -16,19 +16,21 @@ login_manager.session_protection = "strong"   # set level protection
 
 
 db  = MongoEngine(app)           # init mongoengine
-dtb = DebugToolbarExtension(app) # init debug object
+#dtb = DebugToolbarExtension(app) # init debug object
 
 # Enable logging with file
 if app.config['LOG']:
-   logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', level = logging.DEBUG, filename = app.config['LOG']) #u'sitelog.log'
+   #logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', level = logging.DEBUG, filename = app.config['LOG']) #u'sitelog.log'
    logging.info( u'Start server' ) # add log event
 
 # register blueprint objects
 def register_blueprints(app):
     from views import posts
-    from admin import admin
+    from admin import admin, user
+
     app.register_blueprint(posts)
     app.register_blueprint(admin)
+    app.register_blueprint(user)
 
 # perform register
 register_blueprints(app)

@@ -12,6 +12,7 @@ WTF_CSRF_ENABLED = True # CSRF for WTForms
 DEBUG = True            # Using debug
 DOWNLOAD_FOLDER = '../downloads/'# Folder for files for download
 LOG = 'downloads/sitelog.log'    # Log file path
+PASSWORD_MAX_LEN = 3
 """
 
    WhatFor: Configure of MongoDB connection
@@ -25,14 +26,14 @@ DB_NAME = 'ex_site'
 DATABASE = MongoClient()[DB_NAME]
 # Set table names
 POSTS_COLLECTION = DATABASE.posts
-USERS_COLLECTION = DATABASE.users
+USERS_COLLECTION = DATABASE.user
 SETTINGS_COLLECTION = DATABASE.settings #it's not used
 
 # Options configure DB
 MONGODB_DB    =  DB_NAME
 #MONGODB_HOST  = '127.0.0.1'
 #MONGODB_PORT  =  27017
-MONGODB_USERNAME = 'user'
-MONGODB_PASSWORD = 'password'
+#MONGODB_USERNAME = 'myUserAdmin'
+#MONGODB_PASSWORD = 'abc123'
 
  
