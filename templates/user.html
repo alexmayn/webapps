@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% import "_formsusers.html" as forms %}
+
+{% block content %}
+    <h2> Profile </h2>
+    <td><img src="{{user.avatar(128)}}"></td>
+    <td><h1>User: {{user._id}}</h1></td>
+  <form action="?{{ request.query_string }}" method="post">
+    {{ forms.render(form) }}
+    <div class="actions">
+      <input type="submit" class="btn primary" value="Сохранить">
+      <a href="/" class="btn secondary">Отмена</a>
+    </div>
+  </form>
+{% endblock %}

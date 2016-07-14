@@ -3,7 +3,7 @@ import datetime
 from werkzeug.security import check_password_hash
 from flask import url_for
 from ex import db, app
-
+from hashlib import md5
 
 class Comment(db.EmbeddedDocument):
 # Global Commentary class
@@ -22,6 +22,11 @@ class User(db.Document):
     firstname = db.StringField(max_length=255, required=False)
     secondname = db.StringField(max_length=255,required=False)
     email = db.StringField(max_length=255,required=False)
+
+
+    def avatar(self, size):
+        x = md5(self.email).hexdigest()
+        return 'http://www.gravatar.com/avatar/' + md5(self.email).hexdigest() + '?d=mm&s=' + str(size)
 
     def get(self):#userid
         #u = db.getCollection('users').find({})
