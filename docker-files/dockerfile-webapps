@@ -1,0 +1,51 @@
+# DOCKER-file for webapps
+# for build run: 
+# $ docker build -f /path/to/a/Dockerfile . 
+# $ docker build -t shykes/myapp:1.0.2 -t shykes/myapp:latest .
+
+FROM phusion/baseimage 
+
+MAINTAINER Alex Maynagashev <maynagashev@gmail.com>
+LABEL Description="This image is used to start the flask webapp server" Vendor="HandMade Products" Version="1.0"
+
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10 
+RUN echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | tee /etc/apt/sources.list.d/mongodb.list 
+RUN apt-get update && \
+                    apt-get install -y  \ 
+                    nginx \
+                    uwsgi \
+                    uwsgi-plugin-python \
+                    mongodb-org \
+                    zlib1g-dev \
+                    libxml2 \
+                    libxml2-dev \
+                    libxslt-dev \
+                    build-essential \
+                    python-dev
+
+COPY /flask  /home/flask
+ 
+# Autostart services config
+COPY docker-files/01_services.sh /etc/my_init.d/01_services.sh
+RUN chmod a+x /etc/my_init.d/01_services.sh
+
+# NGINX Config
+COPY docker-files/ex.conf /etc/nginx/sites-available/ex.conf
+RUN ln -s /etc/nginx/sites-available/ex.conf /etc/nginx/sites-enabled/ex.conf
+RUN service nginx start
+
+# UWSGI Config
+COPY docker-files/ex.ini /etc/uwsgi/apps-available/ex.ini 
+RUN ln -s /etc/uwsgi/apps-available/ex.ini /etc/uwsgi/apps-enabled/ex.ini
+RUN /usr/bin/uwsgi --ini /etc/uwsgi/apps-available/ex.ini &
+
+
+# Run Mongodb - when it deploing uncomment next line and add to ignore dirictore flask/mongo
+#RUN mkdir /home/flask/mongo 
+RUN mongod --dbpath /home/flask/mongo --logpath /var/log/mongodb/mongo.log --fork
+     
+
+
+
+
+

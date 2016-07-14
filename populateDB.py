@@ -9,7 +9,7 @@ def main():
     # Connect to the DB
     collection = MongoClient()["ex_site"]["user"]
 
-    # Ask for data to store
+    # Create interactive user
     user = unicode(raw_input("Enter your username: "))
     isadmin = raw_input("Is administrator? (True or False): ")
     password = ''
