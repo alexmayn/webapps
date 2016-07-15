@@ -7,6 +7,7 @@ from flask import Blueprint, request, redirect, render_template, url_for, g, fla
 from flask.views import MethodView
 from flask.ext.login import logout_user, login_required
 from ex import app
+import re
 
 
 admin = Blueprint('admin', __name__, template_folder='templates')
@@ -29,14 +30,15 @@ class List(MethodView):
 
     cls = Post
 
+    # Show posts
     @login_required
     def get(self):
-        if check_admin():
+        if check_admin(): # Check user rights
            posts = self.cls.objects.all()
            return render_template('admin/list.html', posts=posts)
         else:
            abort(404)
-        return redirect(url_for('login', next='/admin')) #redirct to login?next=%2Fadmin%2F
+        return redirect(url_for('login', next='/admin'))
 
 class ListUsers(MethodView):
 
@@ -44,12 +46,13 @@ class ListUsers(MethodView):
 
     cls = User
 
+    # show list users
     @login_required
     def get(self):
-        if check_admin():
-            users = self.cls.objects.all() #show list users
+        if check_admin(): # Check user rights
+            users = self.cls.objects.all()
             return render_template('admin/userlist.html', users=users)
-        return redirect(url_for('login', next='/admin'))  # redirct to login?next=%2Fadmin%2F
+        return redirect(url_for('login', next='/admin'))
 
 class Admin(MethodView):
 
@@ -82,7 +85,7 @@ class UserDetail(MethodView):
     @login_required
     def get_context(self, nikname=None):
         if nikname: # when edit user
-            form_cls = EditFormAdmin()  # model_form(User, only=('address', 'firstname', 'secondname', 'email'))
+            form_cls = EditFormAdmin()
             user_data = app.config['USERS_COLLECTION'].find_one({"_id": nikname})
 
             user = User()
@@ -98,8 +101,6 @@ class UserDetail(MethodView):
             user.about = user_data['about']
 
             if request.method == 'POST':
-                # form = form_cls(request.form, inital=user._data)
-                # user._id = user_data['_id']
 
                 user.address = form_cls.address.data
                 user.firstname = form_cls.firstname.data
@@ -110,9 +111,10 @@ class UserDetail(MethodView):
                 if form_cls.newpassword1.data and form_cls.newpassword2.data:
                     if form_cls.newpassword1.data == form_cls.newpassword2.data:
                         user.password = generate_password_hash(form_cls.newpassword1.data, method='pbkdf2:sha256')
+                        return 0
                     else:
                         flash("Please retype new password 2 times correctly", category='error')
-                        # return render_template('user.html', **context)
+                        return 0
 
             else:
                 # form_cls(obj=user)
@@ -134,14 +136,23 @@ class UserDetail(MethodView):
             user.address = form_cls.address.data
             user.firstname = form_cls.firstname.data
             user.secondname = form_cls.secondname.data
-            user.email = form_cls.email.data
             user.isadmin = form_cls.isadmin.data
             user.about = form_cls.about.data
+
+            # Checing e-mail
+            if re.search(r'@', form_cls.email.data):
+                user.email = form_cls.email.data
+            else:
+                flash("Please check youre e-mail", category='error')
+                return 0
+
+            # Checking password
             if form_cls.newpassword1.data and form_cls.newpassword2.data:
                 if form_cls.newpassword1.data == form_cls.newpassword2.data:
                     user.password = generate_password_hash(user.password, method='pbkdf2:sha256')
                 else:
                     flash("Please retype password 2 times correctly", category='error')
+                    return 0
 
         context = {
             "user": user,
@@ -152,9 +163,6 @@ class UserDetail(MethodView):
 
     @login_required
     def get(self, nikname):
-        #if request.method == 'DELETE':
-        #    app.config['USERS_COLLECTION'].delete_one({"_id": nikname})  # delete old document by id
-        #    return redirect(url_for('admin.users'))
         if check_admin():
             context = self.get_context(nikname)
         else:
@@ -165,11 +173,15 @@ class UserDetail(MethodView):
     @login_required
     def post(self, nikname):
         context = self.get_context(nikname)
+
+        if context == 0:
+            return redirect(url_for('posts.profile', nikname=nikname))
+
         form = context.get('form')
+
         if check_admin():
           if form.validate():
                 user = context.get('user')
-                #form.populate_obj(user)
 
                 if user._id == None: # When this is new er
                     user.password = generate_password_hash(user.password , method='pbkdf2:sha256')

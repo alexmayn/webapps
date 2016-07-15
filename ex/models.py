@@ -5,6 +5,7 @@ from flask import url_for
 from ex import db, app
 from hashlib import md5
 
+
 class Comment(db.EmbeddedDocument):
 # Global Commentary class
     created_at = db.DateTimeField(default=datetime.datetime.now, required=True)

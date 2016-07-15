@@ -152,6 +152,7 @@ class UserProfile(MethodView):
                     else:
                         flash("Please check youre e-mail", category='error')
                         return 0 
+                        
                     #Checking password    
                     if form_cls.newpassword1.data and form_cls.newpassword2.data:
                         if form_cls.newpassword1.data == form_cls.newpassword2.data:
