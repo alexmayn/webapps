@@ -13,6 +13,8 @@ DEBUG = True            # Using debug
 DOWNLOAD_FOLDER = '../downloads/'# Folder for files for download
 LOG = 'downloads/sitelog.log'    # Log file path
 PASSWORD_MAX_LEN = 3
+
+
 """
 
    WhatFor: Configure of MongoDB connection

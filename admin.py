@@ -1,9 +1,9 @@
 from flask.ext.mongoengine.wtf import model_form
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from ex.models import Post, User
-#from ex.user import User
+from ex.forms import EditFormAdmin
 from auth import check_admin
-from flask import Blueprint, request, redirect, render_template, url_for, g, flash
+from flask import Blueprint, request, redirect, render_template, url_for, g, flash, abort
 from flask.views import MethodView
 from flask.ext.login import logout_user, login_required
 from ex import app
@@ -32,8 +32,10 @@ class List(MethodView):
     @login_required
     def get(self):
         if check_admin():
-          posts = self.cls.objects.all()
-          return render_template('admin/list.html', posts=posts)
+           posts = self.cls.objects.all()
+           return render_template('admin/list.html', posts=posts)
+        else:
+           abort(404)
         return redirect(url_for('login', next='/admin')) #redirct to login?next=%2Fadmin%2F
 
 class ListUsers(MethodView):
@@ -63,11 +65,14 @@ class UserDelete(MethodView):
     """Class for delete user from DB """
 
     def post(self, nikname):
-        if not nikname == g.user._id:
+       if check_admin():
+         if not nikname == g.user._id:
             app.config['USERS_COLLECTION'].delete_one({"_id": nikname})  # delete document by id
-        else:
+         else:
             flash("You cant delete youreself!", category='error')
-        return redirect(url_for('admin.users'))
+       else:
+         abort(404)
+       return redirect(url_for('admin.users'))
 
 
 class UserDetail(MethodView):
@@ -77,33 +82,70 @@ class UserDetail(MethodView):
     @login_required
     def get_context(self, nikname=None):
         if nikname: # when edit user
-            form_cls = model_form(User, only=('login', 'isadmin', 'address', 'firstname', 'secondname', 'email'))
+            form_cls = EditFormAdmin()  # model_form(User, only=('address', 'firstname', 'secondname', 'email'))
             user_data = app.config['USERS_COLLECTION'].find_one({"_id": nikname})
 
             user = User()
 
-            user._id =        user_data['_id']
-            user.login =      user_data['login']
-            user.address =    user_data['address']
-            user.firstname =  user_data['firstname']
-            user.password =   user_data['password']
+            user._id = user_data['_id']
+            user.login = user_data['login']
+            user.address = user_data['address']
+            user.firstname = user_data['firstname']
+            user.password = user_data['password']
             user.secondname = user_data['secondname']
-            user.isadmin =    user_data['isadmin']
-            user.email =      user_data['email']
+            user.isadmin = user_data['isadmin']
+            user.email = user_data['email']
+            user.about = user_data['about']
 
             if request.method == 'POST':
-                form = form_cls(request.form, inital=user._data)
+                # form = form_cls(request.form, inital=user._data)
+                # user._id = user_data['_id']
+
+                user.address = form_cls.address.data
+                user.firstname = form_cls.firstname.data
+                user.secondname = form_cls.secondname.data
+                user.isadmin = form_cls.isadmin.data
+                user.email = form_cls.email.data
+                user.about = form_cls.about.data
+                if form_cls.newpassword1.data and form_cls.newpassword2.data:
+                    if form_cls.newpassword1.data == form_cls.newpassword2.data:
+                        user.password = generate_password_hash(form_cls.newpassword1.data, method='pbkdf2:sha256')
+                    else:
+                        flash("Please retype new password 2 times correctly", category='error')
+                        # return render_template('user.html', **context)
+
             else:
-                form = form_cls(obj=user)
+                # form_cls(obj=user)
+                form_cls.login.data = user.login  # We do not change it
+                form_cls.address.data = user.address
+                form_cls.firstname.data = user.firstname
+                form_cls.secondname.data = user.secondname
+                form_cls.email.data = user.email
+                form_cls.newpassword1.data = ''
+                form_cls.newpassword2.data = ''
+                form_cls.isadmin.data = user.isadmin
+                form_cls.about.data = user.about
 
         else: #When add new user
-            form_cls = model_form(User)
+            form_cls = EditFormAdmin()
             user = User()
-            form = form_cls(request.form)
+            user._id = form_cls.login.data
+            user.login = form_cls.login.data
+            user.address = form_cls.address.data
+            user.firstname = form_cls.firstname.data
+            user.secondname = form_cls.secondname.data
+            user.email = form_cls.email.data
+            user.isadmin = form_cls.isadmin.data
+            user.about = form_cls.about.data
+            if form_cls.newpassword1.data and form_cls.newpassword2.data:
+                if form_cls.newpassword1.data == form_cls.newpassword2.data:
+                    user.password = generate_password_hash(user.password, method='pbkdf2:sha256')
+                else:
+                    flash("Please retype password 2 times correctly", category='error')
 
         context = {
             "user": user,
-            "form": form,
+            "form": form_cls,
             "create": nikname is None
         }
         return context
@@ -113,7 +155,10 @@ class UserDetail(MethodView):
         #if request.method == 'DELETE':
         #    app.config['USERS_COLLECTION'].delete_one({"_id": nikname})  # delete old document by id
         #    return redirect(url_for('admin.users'))
-        context = self.get_context(nikname)
+        if check_admin():
+            context = self.get_context(nikname)
+        else:
+            abort(404)
         return render_template('admin/settings.html', **context)
 
 
@@ -121,25 +166,28 @@ class UserDetail(MethodView):
     def post(self, nikname):
         context = self.get_context(nikname)
         form = context.get('form')
+        if check_admin():
+          if form.validate():
+                user = context.get('user')
+                #form.populate_obj(user)
 
-        if form.validate():
-            user = context.get('user')
-            form.populate_obj(user)
+                if user._id == None: # When this is new er
+                    user.password = generate_password_hash(user.password , method='pbkdf2:sha256')
 
-            if user._id == None: # When this is new er
-                user.password = generate_password_hash(user.password , method='pbkdf2:sha256')
-
-            if not user._id == user.login:
+                if not user._id == user.login:
+                   try:
+                       app.config['USERS_COLLECTION'].delete_one({"_id": user._id}) # delete old document by id
+                   except:
+                       flash("There were some mistake, when we tried to delete the user "+user._id, category='error')
+                   user._id = user.login # change _id - this make method 'save' to insert mode
                 try:
-                   app.config['USERS_COLLECTION'].delete_one({"_id": user._id}) # delete old document by id
+                    user.save()
                 except:
-                    flash("There were some mistake, when we tried to delete the user "+user._id, category='error')
-                user._id = user.login # change _id - this make method 'save' to insert mode
-            try:
-             user.save()
-            except:
-                flash("There were some mistake, when we tried to save the user " + user._id, category='error')
-            return redirect(url_for('admin.users'))
+                    flash("There were some mistake, when we tried to save the user " + user._id, category='error')
+                return redirect(url_for('admin.users'))
+          else:
+              flash("All fields must be filled ", category='error')
+              return ''
         return render_template('admin/settings.html', **context)
 
 
@@ -170,21 +218,27 @@ class Detail(MethodView):
 
     @login_required
     def get(self, slug):
-        context = self.get_context(slug)
-        return render_template('admin/detail.html', **context)
+        if check_admin():
+            context = self.get_context(slug)
+            return render_template('admin/detail.html', **context)
+        else:
+            abort(404)
 
     @login_required
     def post(self, slug):
-        context = self.get_context(slug)
-        form = context.get('form')
+        if check_admin():
+            context = self.get_context(slug)
+            form = context.get('form')
 
-        if form.validate():
-            post = context.get('post')
-            form.populate_obj(post)
-            post.save()
+            if form.validate():
+                post = context.get('post')
+                form.populate_obj(post)
+                post.save()
 
-            return redirect(url_for('admin.index'))
-        return render_template('admin/detail.html', **context)
+                return redirect(url_for('admin.index'))
+            return render_template('admin/detail.html', **context)
+        else:
+            abort(404)
 
 
 
