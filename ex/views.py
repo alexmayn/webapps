@@ -167,7 +167,7 @@ class UserProfile(MethodView):
                             return 0
 
                 else:
-                   # form_cls.login.data = user.login  
+
                     form_cls.address.data = user.address
                     form_cls.firstname.data = user.firstname
                     form_cls.secondname.data = user.secondname
