@@ -5,7 +5,8 @@
     {{ field() }}
   {% else %}
     <div class="clearfix {% if field.errors %}error{% endif %}">
-      {% if field.name == "isadmin"  %}
+      {% if field.name == "oldpassword"  %}
+
       {% else %}
         {{ field.label }}
         <div class="input">

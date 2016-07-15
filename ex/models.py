@@ -17,19 +17,18 @@ class User(db.Document):
     _id = db.StringField(max_length=255, required=True)
     login = db.StringField(max_length=255, required=True)
     password = db.StringField(max_length=255, required=True)
-    isadmin  = db.StringField(max_length=255, required=True)
+    isadmin  = db.BooleanField(required=True)
     address  = db.StringField(max_length=255, required=False)
     firstname = db.StringField(max_length=255, required=False)
     secondname = db.StringField(max_length=255,required=False)
     email = db.StringField(max_length=255,required=False)
-
+    last_seen = db.DateTimeField(default=datetime.datetime.now, required=True)
+    about = db.StringField(verbose_name=u"About", required=True)
 
     def avatar(self, size):
-        x = md5(self.email).hexdigest()
         return 'http://www.gravatar.com/avatar/' + md5(self.email).hexdigest() + '?d=mm&s=' + str(size)
 
     def get(self):#userid
-        #u = db.getCollection('users').find({})
         u =app.config['USERS_COLLECTION'].find_one({"_id": self._id})
         if not u:
             return None
@@ -61,11 +60,6 @@ class User(db.Document):
 
     def get_id(self):
      return self._id
-
-
-    #def delete(self):
-    #   u = app.config['USERS_COLLECTION'].delete_one({"_id": self._id})  # delete old document by id
-    #   return u
 
     @staticmethod
     def validate_login(password_hash, password):
