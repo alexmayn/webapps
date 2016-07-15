@@ -61,6 +61,9 @@ class User(db.Document):
     def get_id(self):
      return self._id
 
+
+
+
     @staticmethod
     def validate_login(password_hash, password):
         return check_password_hash(password_hash, password)  # embeded func for calculate hash
