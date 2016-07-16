@@ -54,6 +54,51 @@ class ListUsers(MethodView):
             return render_template('admin/userlist.html', users=users)
         return redirect(url_for('login', next='/admin'))
 
+
+class UserStats(MethodView):
+
+    """Class for view list users"""
+
+    cls = User
+
+    # show list stats
+    @login_required
+    def get(self, nikname):
+        """
+            This method view statistics list of user
+
+            :param nikname: The _id user
+            :type nikname: Str
+
+        """
+        if check_admin(): # Check user rights
+            user = User.objects.get_or_404(_id=nikname)
+            if user.stats:
+                return render_template('admin/stats.html', stats=user.stats, user=user._id)
+            else:
+                return render_template('admin/stats.html', stats='', user=user._id)
+        return redirect(url_for('login', next='/admin'))
+
+
+
+
+class UserClearStats(MethodView):
+    # clear list stats
+    @login_required
+    def get(self, nikname):
+        """
+            This is method delete all statistics of user
+
+            :param nikname: The _id user
+            :type nikname: Str
+
+        """
+        if check_admin(): # Check user rights
+            user = User.objects.get_or_404(_id=nikname)
+            user.clear_stats()
+            return render_template('admin/stats.html', stats=user.stats, user=user._id)
+        return redirect(url_for('login', next='/admin'))
+
 class Admin(MethodView):
 
     """ Class for logout """
@@ -68,6 +113,13 @@ class UserDelete(MethodView):
     """Class for delete user from DB """
 
     def post(self, nikname):
+       '''
+            This is method delete user by _id
+
+            :param nikname: The _id user
+            :type nikname: Str
+
+        '''
        if check_admin():
          if not nikname == g.user._id:
             app.config['USERS_COLLECTION'].delete_one({"_id": nikname})  # delete document by id
@@ -85,6 +137,13 @@ class UserDetail(MethodView):
 
     @login_required
     def get_context(self, nikname=None):
+        """
+            This is method get user-form and user objects
+
+            :param nikname: The _id user
+            :type nikname: Str
+
+        """
         if nikname: # when edit user
             form_cls = EditFormAdmin()
             user_data = app.config['USERS_COLLECTION'].find_one({"_id": nikname})
@@ -119,14 +178,11 @@ class UserDetail(MethodView):
                 form_cls.newpassword2.data = ''
                 form_cls.isadmin.data = user.isadmin
                 form_cls.about.data = user.about
-
         else: #When add new user
             form_cls = EditFormAdmin()
             user = User()
             # Change user data
             if request.method == 'POST':
-
-
                 user._id = form_cls.login.data
                 user.login = form_cls.login.data
                 user.address = form_cls.address.data
@@ -134,7 +190,6 @@ class UserDetail(MethodView):
                 user.secondname = form_cls.secondname.data
                 user.isadmin = form_cls.isadmin.data
                 user.about = form_cls.about.data
-
 
         context = {
             "user": user,
@@ -145,6 +200,13 @@ class UserDetail(MethodView):
 
     @login_required
     def get(self, nikname):
+        """
+            This is method view the user-form on page user settings
+
+            :param nikname: The _id user
+            :type nikname: Str
+
+        """
         if check_admin():
             context = self.get_context(nikname)
         else:
@@ -154,18 +216,15 @@ class UserDetail(MethodView):
 
     @login_required
     def post(self, nikname):
+        """
+            This is method changing user settings
+
+            :param nikname: The _id user
+            :type nikname: Str
+
+        """
         context = self.get_context(nikname)
         form = context.get('form')
-
-
-
-       # if context == 0:
-       #     if nikname:
-       #         return redirect(request.referrer)#redirect(url_for('posts.profile', nikname=nikname))
-       #     else:
-       #         return redirect(request.referrer) #redirect(url_for('admin.useradd'))
-
-
 
         if check_admin():
           if form.validate():
@@ -188,8 +247,8 @@ class UserDetail(MethodView):
                       return redirect(request.referrer)
 
 
-              if user._id == None: # When this is new er
-                    user.password = generate_password_hash(user.password , method='pbkdf2:sha256')
+              #if user._id == None: # When this is new er
+              #      user.password = generate_password_hash(user.password , method='pbkdf2:sha256')
 
               if not user._id == user.login:
                    try:
@@ -214,6 +273,13 @@ class Detail(MethodView):
 
     @login_required
     def get_context(self, slug=None):
+        """
+            This is method get post-form and post objects
+
+            :param slug: The _id user
+            :type slug: Str
+
+        """
         form_cls = model_form(Post, exclude=('created_at', 'comments'))
 
         if slug:
@@ -235,6 +301,13 @@ class Detail(MethodView):
 
     @login_required
     def get(self, slug):
+        """
+            This is method view post by slug on page detail of post
+
+            :param slug: The _id user
+            :type slug: Str
+
+        """
         if check_admin():
             context = self.get_context(slug)
             return render_template('admin/detail.html', **context)
@@ -243,6 +316,13 @@ class Detail(MethodView):
 
     @login_required
     def post(self, slug):
+        """
+            This is method adit and view post by slug on page detail of post
+
+            :param slug: The _id user
+            :type slug: Str
+
+        """
         if check_admin():
             context = self.get_context(slug)
             form = context.get('form')
@@ -270,4 +350,6 @@ admin.add_url_rule('/admin/users', view_func=ListUsers.as_view('users'))
 admin.add_url_rule('/admin/useradd/', defaults={'nikname': None}, view_func=UserDetail.as_view('useradd'))
 admin.add_url_rule('/admin/userdelete/<nikname>',  view_func=UserDelete.as_view('userdelete'))
 admin.add_url_rule('/admin/settings/<nikname>', view_func=UserDetail.as_view('settings'))
+admin.add_url_rule('/admin/userstats/<nikname>',  view_func=UserStats.as_view('userstats'))
+admin.add_url_rule('/admin/clearstats/<nikname>',  view_func=UserClearStats.as_view('clearstats'))
 

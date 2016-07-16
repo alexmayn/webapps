@@ -1,0 +1,29 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="navbar-collapse">
+      <ul class="nav nav-pills navbar-nav navbar-right ">
+         <li>
+             <td><a href="{{ url_for("admin.clearstats", nikname=current_user._id) }}" class="btn primary">Clear stats</a></td>
+         </li>
+
+      </ul>
+</div>
+ </div>
+  <table  class="table table-bordered table-striped">
+    <thead>
+      <th>Event</th>
+      <th>Date</th>
+      <th>Referrer</th>
+    </thead>
+    <tbody>
+    {% for stat in stats %}
+      <tr>
+        <th>{{ stat.event }}</a></th>
+        <td>{{ stat.event_at.strftime('%d-%m-%Y %H:%M') }}</td>
+        <td>{{ stat.referrer }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

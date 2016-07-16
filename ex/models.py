@@ -5,7 +5,6 @@ from flask import url_for
 from ex import db, app
 from hashlib import md5
 
-
 class Comment(db.EmbeddedDocument):
     # Global Commentary class
     created_at = db.DateTimeField(default=datetime.datetime.now, required=True)
@@ -33,7 +32,9 @@ class User(db.Document):
     about = db.StringField(verbose_name=u"About", required=True)
     stats = db.ListField(db.EmbeddedDocumentField('Stats'))
 
-    def add_stats(self, event, event_at):
+
+
+    def add_stats(self, event, event_at, referrer):
         '''
            This is method to add some information about user actions and events
            in DB by new embeded document
@@ -42,23 +43,38 @@ class User(db.Document):
            :type event: Str
            :param event_at: event_at: Date and time when it was
            :type event_at: DateTime
+
+           :param referrer: Url user comin from
+           :type referrer: string
         '''
-        self.stats.event = event
-        self.stats.event_at = event_at
-        self.stats.referrer = ''
-        return self.stats.save()
+        user = self.get()
+        stats = Stats()
+        stats.event = event
+        stats.event_at = event_at
+        stats.referrer = referrer
+        user.stats.append(stats)
+        return user.save()
 
     def get_stats(self):
         return self.stats.ge
 
+    def clear_stats(self):
+        i = 0
+        while i< len(self.stats):
+            if self.stats:
+                self.stats.pop()
+        self.save()
+        return
+
     def avatar(self, size):
-        return 'http://www.gravatar.com/avatar/' + md5(self.email).hexdigest() + '?d=mm&s=' + str(size)
+        if self._id:
+            return 'http://www.gravatar.com/avatar/' + md5(self.email).hexdigest() + '?d=mm&s=' + str(size)
 
     def get(self):#userid
-        u =app.config['USERS_COLLECTION'].find_one({"_id": self._id})
-        if not u:
+        user = User.objects.get_or_404(_id=self._id)
+        if not user:
             return None
-        return u#Users(u['_id'])
+        return user
 
 
     def get_absolute_url(self):

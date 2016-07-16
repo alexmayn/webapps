@@ -3,6 +3,11 @@
 
 {% block content %}
     <h2> Settings </h2>
+    {% if user._id %}
+      <td><img src="{{user.avatar(128)}}"></td>
+      <td><a href="{{ url_for("admin.userstats", nikname=user._id) }}" class="btn primary">Statistics</a></td>
+    {% endif %}
+ <br>
   <form action="?{{ request.query_string }}" method="post">
     {{ forms.render(form) }}
     <div class="actions">

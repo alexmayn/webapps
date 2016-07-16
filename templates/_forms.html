@@ -19,19 +19,21 @@
          {% endif %}
         </div>
       {% else %}
-        {{ field.label }}
-        <div class="input">
-         {{ field() }}
-         {% if field.errors or field.help_text %}
-            <span class="help-inline">
-           {% if field.errors %}
-             {{ field.errors|join(' ') }}
-           {% else %}
-              {{ field.help_text }}
-           {% endif %}
-           </span>
-         {% endif %}
-        </div>
+        {% if not field.name == "author" %}
+            {{ field.label }}
+            <div class="input">
+             {{ field() }}
+             {% if field.errors or field.help_text %}
+                <span class="help-inline">
+               {% if field.errors %}
+                 {{ field.errors|join(' ') }}
+               {% else %}
+                 {{ field.help_text }}
+               {% endif %}
+               </span>
+             {% endif %}
+            </div>
+        {% endif %}
       {% endif %}
 
     </div>
