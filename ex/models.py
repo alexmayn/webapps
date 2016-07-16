@@ -7,14 +7,20 @@ from hashlib import md5
 
 
 class Comment(db.EmbeddedDocument):
-# Global Commentary class
+    # Global Commentary class
     created_at = db.DateTimeField(default=datetime.datetime.now, required=True)
     body = db.StringField(verbose_name=u"Comment", required=True)
     author = db.StringField(verbose_name=u"Name", max_length=255, required=True)
 
 
+class Stats(db.EmbeddedDocument):
+    # User statistics class
+    event_at = db.DateTimeField(default=datetime.datetime.now, required=False)
+    event = db.StringField(verbose_name=u"Stats", required=False)
+    referrer = db.StringField(verbose_name=u"Referrer", required=False)
+
 class User(db.Document):
-# Users class for administration use
+    # Users class for administration use
     _id = db.StringField(max_length=255, required=True)
     login = db.StringField(max_length=255, required=True)
     password = db.StringField(max_length=255, required=True)
@@ -25,6 +31,25 @@ class User(db.Document):
     email = db.StringField(max_length=255,required=False)
     last_seen = db.DateTimeField(default=datetime.datetime.now, required=True)
     about = db.StringField(verbose_name=u"About", required=True)
+    stats = db.ListField(db.EmbeddedDocumentField('Stats'))
+
+    def add_stats(self, event, event_at):
+        '''
+           This is method to add some information about user actions and events
+           in DB by new embeded document
+
+           :param event: The define about event Login, Logout and other
+           :type event: Str
+           :param event_at: event_at: Date and time when it was
+           :type event_at: DateTime
+        '''
+        self.stats.event = event
+        self.stats.event_at = event_at
+        self.stats.referrer = ''
+        return self.stats.save()
+
+    def get_stats(self):
+        return self.stats.ge
 
     def avatar(self, size):
         return 'http://www.gravatar.com/avatar/' + md5(self.email).hexdigest() + '?d=mm&s=' + str(size)

@@ -32,12 +32,12 @@ def login():
     if request.method == 'POST' and form.validate_on_submit():                      # check method and form data
         user = app.config['USERS_COLLECTION'].find_one({"_id": form.username.data}) # find user by name
         if user and User.validate_login(user['password'], form.password.data):      # check user login and password
-            user_obj = User(user['_id'])
-            login_user(user_obj)
-            g.user = user_obj
-            flash("Logged in successfully!", category='success')
-            logging.info(str(request.remote_addr) +u' - - User: ' + str(g.user._id) + u' "was login"')
-            return redirect(request.args.get("next") or url_for("home"))
+            user_obj = User(user['_id'])                                            # get user object bi id from DB
+            login_user(user_obj)                                                    # autorized the user
+            g.user = user_obj                                                       # set global var to remember who was login
+            flash("Logged in successfully!", category='success')                    # show message success comin
+            logging.info(str(request.remote_addr) +u' - - User: ' + str(g.user._id) + u' "was login"') # add info to log-file
+            return redirect(request.args.get("next") or url_for("home"))            # redirect to home page
         flash("Wrong username or password!", category='error')
     return render_template('login.html', title='login', form=form)          #rollback to login page
 

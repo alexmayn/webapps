@@ -71,6 +71,7 @@ class UserDelete(MethodView):
        if check_admin():
          if not nikname == g.user._id:
             app.config['USERS_COLLECTION'].delete_one({"_id": nikname})  # delete document by id
+            flash("User is successful delete! ", category='success')
          else:
             flash("You cant delete youreself!", category='error')
        else:
@@ -100,25 +101,16 @@ class UserDetail(MethodView):
             user.email = user_data['email']
             user.about = user_data['about']
 
+            # Change user data
             if request.method == 'POST':
-
+                user.login = form_cls.login.data
                 user.address = form_cls.address.data
                 user.firstname = form_cls.firstname.data
                 user.secondname = form_cls.secondname.data
                 user.isadmin = form_cls.isadmin.data
-                user.email = form_cls.email.data
                 user.about = form_cls.about.data
-                if form_cls.newpassword1.data and form_cls.newpassword2.data:
-                    if form_cls.newpassword1.data == form_cls.newpassword2.data:
-                        user.password = generate_password_hash(form_cls.newpassword1.data, method='pbkdf2:sha256')
-                        return 0
-                    else:
-                        flash("Please retype new password 2 times correctly", category='error')
-                        return 0
-
-            else:
-                # form_cls(obj=user)
-                form_cls.login.data = user.login  # We do not change it
+            else: # Get user data
+                form_cls.login.data = user.login
                 form_cls.address.data = user.address
                 form_cls.firstname.data = user.firstname
                 form_cls.secondname.data = user.secondname
@@ -131,28 +123,18 @@ class UserDetail(MethodView):
         else: #When add new user
             form_cls = EditFormAdmin()
             user = User()
-            user._id = form_cls.login.data
-            user.login = form_cls.login.data
-            user.address = form_cls.address.data
-            user.firstname = form_cls.firstname.data
-            user.secondname = form_cls.secondname.data
-            user.isadmin = form_cls.isadmin.data
-            user.about = form_cls.about.data
+            # Change user data
+            if request.method == 'POST':
 
-            # Checing e-mail
-            if re.search(r'@', form_cls.email.data):
-                user.email = form_cls.email.data
-            else:
-                flash("Please check youre e-mail", category='error')
-                return 0
 
-            # Checking password
-            if form_cls.newpassword1.data and form_cls.newpassword2.data:
-                if form_cls.newpassword1.data == form_cls.newpassword2.data:
-                    user.password = generate_password_hash(user.password, method='pbkdf2:sha256')
-                else:
-                    flash("Please retype password 2 times correctly", category='error')
-                    return 0
+                user._id = form_cls.login.data
+                user.login = form_cls.login.data
+                user.address = form_cls.address.data
+                user.firstname = form_cls.firstname.data
+                user.secondname = form_cls.secondname.data
+                user.isadmin = form_cls.isadmin.data
+                user.about = form_cls.about.data
+
 
         context = {
             "user": user,
@@ -173,30 +155,53 @@ class UserDetail(MethodView):
     @login_required
     def post(self, nikname):
         context = self.get_context(nikname)
-
-        if context == 0:
-            return redirect(url_for('posts.profile', nikname=nikname))
-
         form = context.get('form')
+
+
+
+       # if context == 0:
+       #     if nikname:
+       #         return redirect(request.referrer)#redirect(url_for('posts.profile', nikname=nikname))
+       #     else:
+       #         return redirect(request.referrer) #redirect(url_for('admin.useradd'))
+
+
 
         if check_admin():
           if form.validate():
-                user = context.get('user')
 
-                if user._id == None: # When this is new er
+              user = context.get('user')
+
+              if form.email.data:
+                  if re.search(r'@', form.email.data):
+                      user.email = form.email.data
+                  else:
+                      flash("Please check youre e-mail", category='error')
+                      return redirect(request.referrer)
+
+              if form.newpassword1.data and form.newpassword2.data:
+                  if form.newpassword1.data == form.newpassword2.data:
+                      user.password = generate_password_hash(form.newpassword1.data, method='pbkdf2:sha256')
+                      #return redirect(request.referrer)
+                  else:
+                      flash("Please retype new password 2 times correctly", category='error')
+                      return redirect(request.referrer)
+
+
+              if user._id == None: # When this is new er
                     user.password = generate_password_hash(user.password , method='pbkdf2:sha256')
 
-                if not user._id == user.login:
+              if not user._id == user.login:
                    try:
                        app.config['USERS_COLLECTION'].delete_one({"_id": user._id}) # delete old document by id
                    except:
                        flash("There were some mistake, when we tried to delete the user "+user._id, category='error')
                    user._id = user.login # change _id - this make method 'save' to insert mode
-                try:
+              try:
                     user.save()
-                except:
+              except:
                     flash("There were some mistake, when we tried to save the user " + user._id, category='error')
-                return redirect(url_for('admin.users'))
+              return redirect(url_for('admin.users'))
           else:
               flash("All fields must be filled ", category='error')
               return ''
