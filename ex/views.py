@@ -35,7 +35,7 @@ def login():
             user_obj = User(user['_id'])                                            # get user object bi id from DB
             login_user(user_obj)                                                    # autorized the user
             g.user = user_obj                                                       # set global var to remember who was login
-            g.user.add_stats("Loggined to site", datetime.utcnow(),request.referrer)
+            g.user.add_stats("Loggined to site", datetime.utcnow(),request.referrer, str(request.remote_addr))
             flash("Logged in successfully!", category='success')                    # show message success comin
             logging.info(str(request.remote_addr) +u' - - User: ' + str(g.user._id) + u' "was login"') # add info to log-file
             return redirect(request.args.get("next") or url_for("home"))            # redirect to home page

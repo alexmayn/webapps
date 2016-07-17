@@ -17,6 +17,7 @@ class Stats(db.EmbeddedDocument):
     event_at = db.DateTimeField(default=datetime.datetime.now, required=False)
     event = db.StringField(verbose_name=u"Stats", required=False)
     referrer = db.StringField(verbose_name=u"Referrer", required=False)
+    ip_addr = db.StringField(max_length=32, required=False)
 
 class User(db.Document):
     # Users class for administration use
@@ -34,7 +35,7 @@ class User(db.Document):
 
 
 
-    def add_stats(self, event, event_at, referrer):
+    def add_stats(self, event, event_at, referrer, ip_addr):
         '''
            This is method to add some information about user actions and events
            in DB by new embeded document
@@ -52,11 +53,12 @@ class User(db.Document):
         stats.event = event
         stats.event_at = event_at
         stats.referrer = referrer
+        stats.ip_addr = ip_addr
         user.stats.append(stats)
         return user.save()
 
     def get_stats(self):
-        return self.stats.ge
+        return self.stats.get()
 
     def clear_stats(self):
         i = 0

@@ -10,9 +10,10 @@
       </ul>
 </div>
  </div>
-  <table  class="table table-bordered table-striped">
+  <table  class="table table-bordered table-striped" id="statistics">
     <thead>
       <th>Event</th>
+      <th>IP address</th>
       <th>Date</th>
       <th>Referrer</th>
     </thead>
@@ -20,6 +21,7 @@
     {% for stat in stats %}
       <tr>
         <th>{{ stat.event }}</a></th>
+        <td>{{ stat.ip_addr }}</td>
         <td>{{ stat.event_at.strftime('%d-%m-%Y %H:%M') }}</td>
         <td>{{ stat.referrer }}</td>
       </tr>
