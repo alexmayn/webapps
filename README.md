@@ -11,7 +11,7 @@ For docker start you should use this command:
             $ docker pull maynagashev/webapp
 And Run docker with volume sharing
 
-            $ sudo docker run -v /home/administrator/docker/flask:/home/flask --dns YOURE_DNS -p 127.0.0.1:222:22 -p 127.0.0.1:8080:80 -i -t baseimage-ex.com-flask-tb3 /sbin/my_init -- bash -l
+            $ sudo docker run -v <YOUR_WEBAPP_DIRECTORY>:<DIRECTORY_ON_VIRTUAL_MACINE_WHERE STAY_WEBAPP> --dns <YOUR_DNS> -p 127.0.0.1:222:22 -p 127.0.0.1:8080:80 -i -t  maynagashev/webapp /sbin/my_init -- bash -l
 
 Add host to hosts
 
