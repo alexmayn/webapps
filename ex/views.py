@@ -1,4 +1,5 @@
-from flask import Blueprint, request, redirect, render_template, url_for, g, flash, current_app, send_from_directory, abort
+from flask import Blueprint, request, redirect, render_template, url_for, g, flash, current_app, send_from_directory, \
+                        abort, session
 from flask.views import MethodView
 from flask.ext.login import login_user, logout_user, login_required, current_user, user_needs_refresh
 from flask.ext.mongoengine.wtf import model_form
@@ -87,6 +88,13 @@ def before_request():
     if g.user.is_anonymous == False:
        logging.info(str(request.remote_addr) + ' - - User: ' + str(g.user._id) + "Last seen at "+str(datetime.utcnow()))  # add log event 
 
+    # session counter for reset timeout
+    try:
+        session['counter'] += 1
+    except KeyError:
+        session['counter'] = 1
+
+
 # Load user from DB
 @login_manager.user_loader
 def load_user(username):
@@ -98,6 +106,7 @@ def load_user(username):
 # Load and render list of articles
 class ListView(MethodView):
     def get(self):
+        session.permanent = True
         posts = Post.objects.all()
         return render_template('posts/list.html', posts=posts)
 

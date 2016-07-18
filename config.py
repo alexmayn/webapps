@@ -14,6 +14,7 @@ DOWNLOAD_FOLDER = '../downloads/'# Folder for files for download
 LOG = 'downloads/sitelog.log'    # Log file path
 PASSWORD_MAX_LEN = 3
 MAX_TRIES_TO_LOGIN = 10
+SESSION_LIFE_TIME =  20 # timeout session
 
 """
 

@@ -3,12 +3,13 @@ from flask import Flask
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_mongoengine import MongoEngine
 import logging
-
+from datetime import timedelta
 
 
 
 app = Flask(__name__)            # init app
 app.config.from_object('config') # read config.py
+app.permanent_session_lifetime = timedelta(seconds=app.config['SESSION_LIFE_TIME'])
 
 login_manager = LoginManager()                #init login-manager
 login_manager.init_app(app)                   # set app
