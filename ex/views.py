@@ -12,6 +12,8 @@ import os
 import re
 
 posts = Blueprint('posts', __name__, template_folder='templates') #reg plueprint object
+global login_times
+global login_ip
 
 @app.errorhandler(404)
 def not_found(error):
@@ -25,9 +27,26 @@ def download(filename):
     logging.info(str(request.remote_addr)+u' - - User: ' + str(g.user._id) + u' "Downloading log-file"')  # add log event
     return send_from_directory(directory=downloads, filename=filename)
 
+login_times = 0
+login_ip = ''
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    global login_times
+    global login_ip
+
+    #bruteforce definition
+    if login_ip == request.remote_addr: # check IP
+        login_times += 1   # if one user then counter +1
+    else:
+        login_times = 0    # if enother user reset counter
+
+    login_ip = request.remote_addr # save current IP
+
+    if login_times>app.config['MAX_TRIES_TO_LOGIN']: # check counter
+        login_times = 0                          # abort if > max times
+        abort(403)
+
     form = LoginForm()                                                              # init login form
     if request.method == 'POST' and form.validate_on_submit():                      # check method and form data
         user = app.config['USERS_COLLECTION'].find_one({"_id": form.username.data}) # find user by name
@@ -35,6 +54,7 @@ def login():
             user_obj = User(user['_id'])                                            # get user object bi id from DB
             login_user(user_obj)                                                    # autorized the user
             g.user = user_obj                                                       # set global var to remember who was login
+            login_times = 0                                                         # reset login counter
             g.user.add_stats("Loggined to site", datetime.utcnow(),request.referrer, str(request.remote_addr))
             flash("Logged in successfully!", category='success')                    # show message success comin
             logging.info(str(request.remote_addr) +u' - - User: ' + str(g.user._id) + u' "was login"') # add info to log-file
