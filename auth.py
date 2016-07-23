@@ -10,7 +10,7 @@ def check_admin():
         # Find user in DB
         user = app.config['USERS_COLLECTION'].find_one({"_id": user_obj._id})
         if not user['isadmin'] == True:
-            return True # user is not admin
+            return False # user is not admin
         else:
             return True  # user is admin
 
